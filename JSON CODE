@@ -1,3 +1,5 @@
+import json
+
 submission = []
 for review_id, group in pred_df.groupby("review_id", sort=False):
     submission.append({
