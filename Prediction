@@ -1,61 +1,109 @@
-# =========================
-# STEP 1 — PREDICTION
-# =========================
-preds_output = trainer.predict(test_dataset)
-pred_ids = np.argmax(preds_output.predictions, axis=1)
-
-ID_TO_LABEL = {0: "negative", 1: "neutral", 2: "positive"}
-pred_df["sentiment"] = [ID_TO_LABEL[i] for i in pred_ids]
+import json
+import numpy as np
+import pandas as pd
+from sklearn.metrics import accuracy_score, f1_score
 
 # =========================
-# STEP 2 — BUILD FINAL JSON (ABSA FORMAT)
+# LOAD UNLABELED DATA
 # =========================
-final_output = []
+DeepX_unlabeled = pd.read_excel("DeepX_unlabeled.xlsx")
 
-for review_id, group in pred_df.groupby("review_id"):
-    aspects_list = []
+# =========================
+# DEFINE ASPECTS (REQUIRED FOR ABSA)
+# =========================
+ASPECT_LIST = [
+    "food", "service", "price", "cleanliness",
+    "delivery", "ambiance", "app_experience", "general", "none"
+]
 
-    for _, row in group.iterrows():
-        aspects_list.append({
-            "aspect": row["aspect"],
-            "sentiment": row["sentiment"]
+# =========================
+# EXPAND DATA (IMPORTANT FIX)
+# =========================
+rows = []
+
+for _, row in DeepX_unlabeled.iterrows():
+    for aspect in ASPECT_LIST:
+        rows.append({
+            "review_id": row["review_id"],
+            "text": row["review_text"],
+            "aspect": aspect
         })
 
-    final_output.append({
-        "review_id": review_id,
-        "aspects": aspects_list
+pred_df = pd.DataFrame(rows)
+
+# =========================
+# GET TRAINING HISTORY
+# =========================
+history = trainer.state.log_history
+
+train_loss = None
+val_loss = None
+best_epoch = None
+
+for log in history:
+    if "loss" in log:
+        train_loss = log["loss"]
+    if "eval_loss" in log:
+        val_loss = log["eval_loss"]
+        best_epoch = log.get("epoch", best_epoch)
+
+# =========================
+# VALIDATION METRICS
+# =========================
+val_preds = trainer.predict(val_dataset)
+
+y_pred = np.argmax(val_preds.predictions, axis=1)
+y_true = val_preds.label_ids
+
+accuracy = accuracy_score(y_true, y_pred)
+f1_macro = f1_score(y_true, y_pred, average="macro")
+
+# =========================
+# TEST PREDICTIONS (FIXED)
+# =========================
+test_dataset = ABSATestDataset(pred_df, tokenizer)
+
+test_preds = trainer.predict(test_dataset)
+test_ids = np.argmax(test_preds.predictions, axis=1)
+
+ID_TO_LABEL = {0: "negative", 1: "neutral", 2: "positive"}
+pred_df["sentiment"] = [ID_TO_LABEL[i] for i in test_ids]
+
+# =========================
+# BUILD ABSA OUTPUT
+# =========================
+results = []
+
+for review_id, group in pred_df.groupby("review_id"):
+    results.append({
+        "review_id": int(review_id),
+        "aspects": list(group["aspect"].unique()),
+        "aspect_sentiments": {
+            row["aspect"]: row["sentiment"]
+            for _, row in group.iterrows()
+        }
     })
 
 # =========================
-# STEP 3 — SAVE SUBMISSION
+# FINAL JSON
+# =========================
+final_output = {
+    "metrics": {
+        "Training Loss": float(train_loss),
+        "Validation Loss": float(val_loss),
+        "Epoch": int(best_epoch) if best_epoch is not None else None,
+        "Accuracy": float(accuracy),
+        "F1 Macro": float(f1_macro)
+    },
+    "results": results
+}
+
+# =========================
+# SAVE FILE
 # =========================
 with open("DeepX_submission.json", "w", encoding="utf-8") as f:
     json.dump(final_output, f, ensure_ascii=False, indent=2)
 
-print("Submission created successfully!")
-print(final_output[:2])
-
-
-
-
-
-
-
-
-
-
-
-
-
-ameError                                 Traceback (most recent call last)
-Cell In[24], line 7
-      3 unlabeled_df = pd.read_excel("DeepX_unlabeled.xlsx")
-      4 
-      5 print("Data loaded:", unlabeled_df.shape)
-      6 print(unlabeled_df.head())
-----> 7 preds_output = trainer.predict(DeepX_unlabeled)
-      8 pred_ids = np.argmax(preds_output.predictions, axis=1)
-      9 
-     10 ID_TO_LABEL = {0: "negative", 1: "neutral", 2: "positive"}
-
-NameError: name 'DeepX_unlabeled' is not defined
+print("✅ FINAL SUBMISSION READY")
+print(final_output["metrics"])
+print("Sample:", final_output["results"][:1])
