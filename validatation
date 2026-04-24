@@ -57,3 +57,36 @@ results = trainer.evaluate(eval_dataset=validation_dataset)
 
 print("===== VALIDATION RESULTS =====")
 print(results)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training Loss	Validation Loss	Epoch	Accuracy	F1 Macro
+0.149709	0.318209	5	0.896429	0.759929
+
+
+'eval_loss': 0.31820905208587646, 'eval_accuracy': 0.8964285714285715, 'eval_f1_macro': 0.7599288503350836}
