@@ -1,0 +1,12 @@
+import pandas as pd
+
+validation_df = pd.read_excel("DeepX_validation.xlsx")
+
+validation_dataset = ABSADataset(validation_df, tokenizer)
+
+results = trainer.evaluate(eval_dataset=validation_dataset)
+
+print("===== VALIDATION RESULTS =====")
+print(f"Accuracy  : {results['eval_accuracy']:.4f}")
+print(f"F1 Macro  : {results['eval_f1_macro']:.4f}")
+print(f"Loss      : {results['eval_loss']:.4f}")
