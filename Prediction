@@ -34,3 +34,28 @@ with open("DeepX_submission.json", "w", encoding="utf-8") as f:
 
 print("Submission created successfully!")
 print(final_output[:2])
+
+
+
+
+
+
+
+
+
+
+
+
+
+ameError                                 Traceback (most recent call last)
+Cell In[24], line 7
+      3 unlabeled_df = pd.read_excel("DeepX_unlabeled.xlsx")
+      4 
+      5 print("Data loaded:", unlabeled_df.shape)
+      6 print(unlabeled_df.head())
+----> 7 preds_output = trainer.predict(DeepX_unlabeled)
+      8 pred_ids = np.argmax(preds_output.predictions, axis=1)
+      9 
+     10 ID_TO_LABEL = {0: "negative", 1: "neutral", 2: "positive"}
+
+NameError: name 'DeepX_unlabeled' is not defined
