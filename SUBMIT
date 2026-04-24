@@ -1,0 +1,4 @@
+trainer.save_model("arabert-absa")
+tokenizer.save_pretrained("arabert-absa")
+
+print("✅ Model saved successfully")
