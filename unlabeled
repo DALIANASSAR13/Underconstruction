@@ -22,3 +22,38 @@ for _, row in df.iterrows():
         })
 
 pred_df = pd.DataFrame(rows)
+
+
+
+r                                  Traceback (most recent call last)
+File c:\Users\11\anaconda3\Lib\site-packages\pandas\core\indexes\base.py:3805, in Index.get_loc(self, key)
+   3804 try:
+-> 3805     return self._engine.get_loc(casted_key)
+   3806 except KeyError as err:
+
+File index.pyx:167, in pandas._libs.index.IndexEngine.get_loc()
+--> 167 'Could not get source, probably due dynamically evaluated source code.'
+
+File index.pyx:196, in pandas._libs.index.IndexEngine.get_loc()
+--> 196 'Could not get source, probably due dynamically evaluated source code.'
+
+File pandas\\_libs\\hashtable_class_helper.pxi:7081, in pandas._libs.hashtable.PyObjectHashTable.get_item()
+-> 7081 'Could not get source, probably due dynamically evaluated source code.'
+
+File pandas\\_libs\\hashtable_class_helper.pxi:7089, in pandas._libs.hashtable.PyObjectHashTable.get_item()
+-> 7089 'Could not get source, probably due dynamically evaluated source code.'
+
+KeyError: 'aspect'
+
+The above exception was the direct cause of the following exception:
+
+KeyError                                  Traceback (most recent call last)
+Cell In[30], line 18
+...
+   3815     #  InvalidIndexError. Otherwise we fall through and re-raise
+   3816     #  the TypeError.
+   3817     self._check_indexing_error(key)
+
+KeyError: 'aspect'
+Output is truncated. View as a scrollable element or open in a text editor. Adjust cell output settings...
+
