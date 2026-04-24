@@ -1,0 +1,36 @@
+# =========================
+# STEP 1 — PREDICTION
+# =========================
+preds_output = trainer.predict(test_dataset)
+pred_ids = np.argmax(preds_output.predictions, axis=1)
+
+ID_TO_LABEL = {0: "negative", 1: "neutral", 2: "positive"}
+pred_df["sentiment"] = [ID_TO_LABEL[i] for i in pred_ids]
+
+# =========================
+# STEP 2 — BUILD FINAL JSON (ABSA FORMAT)
+# =========================
+final_output = []
+
+for review_id, group in pred_df.groupby("review_id"):
+    aspects_list = []
+
+    for _, row in group.iterrows():
+        aspects_list.append({
+            "aspect": row["aspect"],
+            "sentiment": row["sentiment"]
+        })
+
+    final_output.append({
+        "review_id": review_id,
+        "aspects": aspects_list
+    })
+
+# =========================
+# STEP 3 — SAVE SUBMISSION
+# =========================
+with open("DeepX_submission.json", "w", encoding="utf-8") as f:
+    json.dump(final_output, f, ensure_ascii=False, indent=2)
+
+print("Submission created successfully!")
+print(final_output[:2])
