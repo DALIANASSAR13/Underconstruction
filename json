@@ -1,0 +1,18 @@
+import json
+
+final_output = {}
+
+for _, row in pred_df.iterrows():
+    rid = str(row["review_id"])
+    aspect = row["aspect"]
+    sentiment = row["prediction"]
+
+    if rid not in final_output:
+        final_output[rid] = {}
+
+    final_output[rid][aspect] = sentiment
+
+with open("submission.json", "w", encoding="utf-8") as f:
+    json.dump(final_output, f, ensure_ascii=False, indent=4)
+
+print("✅ submission.json created successfully")
