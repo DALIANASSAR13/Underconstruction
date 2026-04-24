@@ -91,5 +91,3 @@ Yomna Saad
 Dalia Nasser
 
 Maryam Mahmoud
-
-Hackathon Team Submission
