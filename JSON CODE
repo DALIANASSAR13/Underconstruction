@@ -1,10 +1,9 @@
-# Build submission JSON from pred_df
 submission = []
 for review_id, group in pred_df.groupby("review_id", sort=False):
     submission.append({
         "review_id": int(review_id),
         "aspects": group["aspect"].tolist(),
-        "aspect_sentiments": dict(zip(group["aspect"], group["predicted_sentiment"]))
+        "aspect_sentiments": dict(zip(group["aspect"], group["prediction"]))
     })
 
 with open("submission.json", "w", encoding="utf-8") as f:
