@@ -2,6 +2,36 @@ import pandas as pd
 import torch
 import numpy as np
 
+df = pd.read_excel("DeepX_unlabeled.xlsx")
+
+# aspects لازم تكون ثابتة
+aspects = ["food", "service", "price", "cleanliness", "delivery"]
+
+rows = []
+
+for _, row in df.iterrows():
+    review_id = row["review_id"]
+    review_text = str(row["review_text"])
+
+    for aspect in aspects:
+        rows.append({
+            "review_id": review_id,
+            "review_text": review_text,
+            "aspect": aspect,
+            "input": review_text + " [SEP] " + aspect
+        })
+
+pred_df = pd.DataFrame(rows)
+
+
+
+
+
+
+import pandas as pd
+import torch
+import numpy as np
+
 # =========================
 # 1. LOAD UNLABELED DATA
 # =========================
