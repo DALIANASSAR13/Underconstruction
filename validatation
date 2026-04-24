@@ -1,92 +1,71 @@
 import pandas as pd
+import torch
+import numpy as np
 
-validation_df = pd.read_excel("DeepX_validation.xlsx")
+# =========================
+# 1. LOAD UNLABELED DATA
+# =========================
+df = pd.read_excel("DeepX_unlabeled.xlsx")
 
-validation_dataset = ABSADataset(validation_df, tokenizer)
+# =========================
+# 2. DEFINE ASPECTS
+# (لازم نفس اللي دربتي عليه)
+# =========================
+aspects = ["food", "service", "price", "cleanliness", "delivery"]
 
-results = trainer.evaluate(eval_dataset=validation_dataset)
-
-print("===== VALIDATION RESULTS =====")
-print(f"Accuracy  : {results['eval_accuracy']:.4f}")
-print(f"F1 Macro  : {results['eval_f1_macro']:.4f}")
-print(f"Loss      : {results['eval_loss']:.4f}")
-
-
-import pandas as pd
-import json
-
-# 1. قراءة الملف
-validation_df = pd.read_excel("DeepX_validation.xlsx")
-
-# 2. تحويل JSON strings لو موجودة
-validation_df["aspect_sentiments"] = validation_df["aspect_sentiments"].apply(json.loads)
-
-# 3. تفكيك نفس طريقة التدريب (one row per aspect)
+# =========================
+# 3. BUILD INPUTS
+# =========================
 rows = []
 
-for _, row in validation_df.iterrows():
-    review = row["review_text"]
-    sentiments = row["aspect_sentiments"]
+for _, row in df.iterrows():
+    review_id = row["review_id"]
+    review_text = str(row["review_text"])
 
-    for aspect, sentiment in sentiments.items():
+    for aspect in aspects:
         rows.append({
-            "text": review,
+            "review_id": review_id,
+            "review_text": review_text,
             "aspect": aspect,
-            "label": sentiment
+            "input": review_text + " [SEP] " + aspect
         })
 
-validation_df = pd.DataFrame(rows)
+pred_df = pd.DataFrame(rows)
 
-# 4. label mapping (نفس التدريب)
+# =========================
+# 4. TOKENIZE
+# =========================
+encodings = tokenizer(
+    list(pred_df["input"]),
+    padding=True,
+    truncation=True,
+    max_length=128,
+    return_tensors="pt"
+)
+
+# =========================
+# 5. PREDICT
+# =========================
+model.eval()
+
+with torch.no_grad():
+    outputs = model(
+        input_ids=encodings["input_ids"],
+        attention_mask=encodings["attention_mask"]
+    )
+
+pred_ids = torch.argmax(outputs.logits, dim=1).cpu().numpy()
+
+# =========================
+# 6. MAP LABELS
+# =========================
 label_map = {
-    "negative": 0,
-    "neutral": 1,
-    "positive": 2
+    0: "negative",
+    1: "neutral",
+    2: "positive"
 }
 
-validation_df["label_id"] = validation_df["label"].map(label_map)
+pred_df["sentiment"] = [label_map[i] for i in pred_ids]
 
-# 5. build input (نفس التدريب)
-validation_df["input"] = validation_df["text"] + " [SEP] " + validation_df["aspect"]
-
-# 6. Dataset
-validation_dataset = ABSADataset(validation_df, tokenizer)
-
-# 7. Evaluate
-results = trainer.evaluate(eval_dataset=validation_dataset)
-
-print("===== VALIDATION RESULTS =====")
-print(results)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Training Loss	Validation Loss	Epoch	Accuracy	F1 Macro
-0.149709	0.318209	5	0.896429	0.759929
-
-
-'eval_loss': 0.31820905208587646, 'eval_accuracy': 0.8964285714285715, 'eval_f1_macro': 0.7599288503350836}
+print("✅ Prediction done!")
+print(pred_df.head())
