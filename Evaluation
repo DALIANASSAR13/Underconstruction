@@ -1,0 +1,6 @@
+results = trainer.evaluate(eval_dataset=val_dataset)
+
+print("===== VALIDATION RESULTS =====")
+print(f"Accuracy  : {results['eval_accuracy']:.4f}")
+print(f"F1 Macro  : {results['eval_f1_macro']:.4f}")
+print(f"Loss      : {results['eval_loss']:.4f}")
