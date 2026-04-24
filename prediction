@@ -1,0 +1,65 @@
+import pandas as pd
+import torch
+
+# ------------------------
+# 1. Load unlabeled file
+# ------------------------
+unlabeled_df = pd.read_excel("unlabeled_data.xlsx")
+
+print("Data loaded:", unlabeled_df.shape)
+print(unlabeled_df.head())
+
+# ------------------------
+# 2. Build model input (same format as training)
+# ------------------------
+unlabeled_df["input"] = (
+    unlabeled_df["review_text"].astype(str) 
+    + " [SEP] " 
+    + unlabeled_df["aspect"].astype(str)
+)
+
+# ------------------------
+# 3. Tokenization
+# ------------------------
+encodings = tokenizer(
+    list(unlabeled_df["input"]),
+    padding=True,
+    truncation=True,
+    max_length=128,
+    return_tensors="pt"
+)
+
+# ------------------------
+# 4. Move model to eval mode
+# ------------------------
+model.eval()
+
+# ------------------------
+# 5. Prediction
+# ------------------------
+with torch.no_grad():
+    outputs = model(
+        input_ids=encodings["input_ids"],
+        attention_mask=encodings["attention_mask"]
+    )
+
+preds = torch.argmax(outputs.logits, dim=1).cpu().numpy()
+
+# ------------------------
+# 6. Map labels back to text
+# ------------------------
+label_map_inv = {
+    0: "negative",
+    1: "neutral",
+    2: "positive"
+}
+
+unlabeled_df["prediction"] = [label_map_inv[p] for p in preds]
+
+# ------------------------
+# 7. Save results
+# ------------------------
+unlabeled_df.to_excel("predictions.xlsx", index=False)
+
+print("✅ Predictions saved to predictions.xlsx")
+print(unlabeled_df[["review_text", "aspect", "prediction"]].head())
