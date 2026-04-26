@@ -88,6 +88,6 @@ DeepX_submission.json
 ## 👩‍💻 Team
 Yomna Saad
 
-Dalia Nasser
+Dalia Nassar
 
 Maryam Mahmoud
