@@ -1,4 +1,4 @@
-# Arabic ABSA Model – Hackathon Submission
+# Arabic ABSA Model
 
 ## 📌 Overview
 
